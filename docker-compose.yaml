@@ -1,0 +1,76 @@
+version: '3.6'
+
+x-function: &python
+  volumes:
+    - ./app:/app:rw
+    - poetry-volume:/opt/poetry:delegated
+  user: "${USER_ID}"
+  environment: &env-vars
+    POETRY_HOME: /opt/poetry
+  networks:
+    - internal
+  env_file:
+    .env
+
+services:
+  app_db:
+    container_name: ${PROJECT_SLUG}_db
+    image: postgres:11
+    volumes:
+      - app_db-p2p:/var/lib/postgresql/data/pgdata:rw
+    env_file:
+      - .env
+    networks:
+      - internal
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+  app_redis:
+    container_name: ${PROJECT_SLUG}_redis
+    networks:
+      - internal
+    image: redis:5.0.0
+    command: "redis-server"
+    restart: always
+
+  app:
+    <<: *python
+    container_name: ${PROJECT_SLUG}_app
+    build:
+      context: .
+      dockerfile: backend.dockerfile
+    env_file:
+      - .env
+    expose:
+      - 80
+    restart: always
+
+  app-admin:
+    <<: *python
+    container_name: ${PROJECT_SLUG}_app_admin
+    build:
+      context: .
+      dockerfile: admin.dockerfile
+    env_file:
+      - .env
+    expose:
+      - 80
+    restart: on-failure
+
+  nginx:
+    build: ./nginx/local
+    expose:
+      - 80
+    ports:
+      - 80:80
+    networks:
+      - internal
+
+volumes:
+  app_db-p2p:
+  poetry-volume:
+
+networks:
+  internal:

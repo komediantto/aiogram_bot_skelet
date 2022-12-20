@@ -1,0 +1,19 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+  {{ super() }}
+  <div class='container'>
+      <div>
+          <div>
+            <h1>Welcome!</h1>
+              <h3>Please log in to continue</h3>
+              <br>
+              <p>You can log in as the default administrator with the following credentials:
+              <ul>
+                  <li>Email: <b>admin</b></li>
+                  <li>Password: <b>admin</b></li>
+              </ul>
+          </div>
+      </div>
+  </div>
+{% endblock body %}
